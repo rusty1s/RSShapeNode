@@ -101,13 +101,13 @@ public class RSShapeNode : SKNode {
     
     public var lineCap: LineCap = .Butt { didSet { updateShape() } }
 
-    public var lineJoin: LineJoin = .Bevel { didSet { updateShape() } }
+    public var lineJoin: LineJoin = .Miter { didSet { updateShape() } }
     
-    public var miterLimit: CGFloat = 0.5 { didSet { updateShape() } }
+    public var miterLimit: CGFloat = 10 { didSet { updateShape() } }
     
     public var fillRule: FillRule = .NonZero { didSet { updateShape() } }
     
-    public var lineDashPattern: [Int]? { didSet { updateShape() } }
+    public var lineDashPattern: [CGFloat]? { didSet { updateShape() } }
     
     public var lineDashPhase: CGFloat = 0 { didSet { updateShape() } }
     
@@ -160,7 +160,7 @@ public class RSShapeNode : SKNode {
             layer.lineWidth = lineWidth
             layer.strokeColor = strokeColor.CGColor
             layer.miterLimit = miterLimit
-            layer.lineDashPattern = lineDashPattern?.map { NSNumber(integer: $0) }
+            layer.lineDashPattern = lineDashPattern?.map { NSNumber(double: Double($0)) }
             layer.lineDashPhase = lineDashPhase
             layer.strokeStart = strokeStart
             layer.strokeEnd = strokeEnd
