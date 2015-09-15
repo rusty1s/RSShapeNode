@@ -15,20 +15,8 @@ class Scene : SKScene {
         //backgroundColor = SKColor.whiteColor()
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
         
-        var vertices = [CGPoint(x: 0, y: 0), CGPoint(x: 50, y: 100), CGPoint(x: 100, y: 0)]
+        let vertices = [CGPoint(x: 0, y: 0), CGPoint(x: 50, y: 100), CGPoint(x: 100, y: 0)]
         
-        let path = CGPathCreateMutable()
-        
-        if vertices.isEmpty {
-            CGPathMoveToPoint(path, nil, 0, 0)
-        }
-        else {
-            for (index, vertex) in vertices.enumerate() {
-                if index == 0 { CGPathMoveToPoint(path, nil, vertex.x, vertex.y) }
-                else { CGPathAddLineToPoint(path, nil, vertex.x, vertex.y) }
-            }
-            if vertices.count > 2 { CGPathCloseSubpath(path) }
-        }
         
         let node = RSShapeNode(controlPoints: vertices, closed: false)
         node.strokeColor = SKColor.yellowColor()

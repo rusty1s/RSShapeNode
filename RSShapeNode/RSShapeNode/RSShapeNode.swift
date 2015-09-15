@@ -10,24 +10,24 @@ import SpriteKit
 
 public class RSShapeNode : SKNode {
     
-    public enum TextureStyle {
+    public enum TextureStyle : Int {
         case Scale
         case Repeat
     }
     
-    public enum LineCap {
+    public enum LineCap : Int {
         case Butt
         case Round
         case Square
     }
     
-    public enum LineJoin {
+    public enum LineJoin : Int {
         case Miter
         case Round
         case Bevel
     }
     
-    public enum FillRule {
+    public enum FillRule : Int {
         case NonZero
         case EvenOdd
     }
@@ -136,19 +136,80 @@ public class RSShapeNode : SKNode {
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        // TODO
+        super.init()
+        
+        if let fillColor = aDecoder.decodeObjectForKey("fillColor") as? SKColor { self.fillColor = fillColor }
+        if let fillTexture = aDecoder.decodeObjectForKey("fillTexture") as? SKTexture { self.fillTexture = fillTexture }
+        fillTextureStyle = TextureStyle(rawValue: aDecoder.decodeIntegerForKey("fillTextureStyle"))!
+        fillTextureOffset = aDecoder.decodeCGPointForKey("fillTextureOffset")
+        
+        lineWidth = CGFloat(aDecoder.decodeDoubleForKey("lineWidth"))
+        if let strokeColor = aDecoder.decodeObjectForKey("strokeColor") as? SKColor { self.strokeColor = strokeColor }
+        if let strokeTexture = aDecoder.decodeObjectForKey("strokeTexture") as? SKTexture { self.strokeTexture = strokeTexture }
+        strokeTextureStyle = TextureStyle(rawValue: aDecoder.decodeIntegerForKey("strokeTextureStyle"))!
+        strokeTextureOffset = aDecoder.decodeCGPointForKey("strokeTextureOffset")
+        
+        lineCap = LineCap(rawValue: aDecoder.decodeIntegerForKey("lineCap"))!
+        lineJoin = LineJoin(rawValue: aDecoder.decodeIntegerForKey("lineJoin"))!
+        miterLimit = CGFloat(aDecoder.decodeDoubleForKey("miterLimit"))
+        fillRule = FillRule(rawValue: aDecoder.decodeIntegerForKey("fillRule"))!
+        
+        if let lineDashPattern = aDecoder.decodeObjectForKey("lineDashPattern") as? [NSNumber] { self.lineDashPattern = lineDashPattern.map { CGFloat($0.doubleValue) } }
+        lineDashPhase = CGFloat(aDecoder.decodeDoubleForKey("lineDashPhase"))
+        strokeStart = CGFloat(aDecoder.decodeDoubleForKey("strokeStart"))
+        strokeEnd = CGFloat(aDecoder.decodeDoubleForKey("strokeEnd"))
+        
+        glowWidth = CGFloat(aDecoder.decodeDoubleForKey("glowWidth"))
+        if let glowColor = aDecoder.decodeObjectForKey("glowColor") as? SKColor { self.glowColor = glowColor }
+        
+        blendMode = SKBlendMode(rawValue: aDecoder.decodeIntegerForKey("blendMode"))!
+        if let shader = aDecoder.decodeObjectForKey("shader") as? SKShader { self.shader = shader }
+        
+        if let path = aDecoder.decodeObjectForKey("path") as? UIBezierPath { self.path = path.CGPath }
+    }
+    
+    public override func encodeWithCoder(aCoder: NSCoder) {
+        aCoder.encodeObject(fillColor, forKey: "fillColor")
+        aCoder.encodeObject(fillTexture, forKey: "fillTexture")
+        aCoder.encodeInteger(fillTextureStyle.rawValue, forKey: "fillTextureStyle")
+        aCoder.encodeCGPoint(fillTextureOffset, forKey: "fillTextureOffset")
+        
+        aCoder.encodeDouble(Double(lineWidth), forKey: "lineWidth")
+        aCoder.encodeObject(strokeColor, forKey: "strokeColor")
+        aCoder.encodeObject(strokeTexture, forKey: "strokeTexture")
+        aCoder.encodeInteger(strokeTextureStyle.rawValue, forKey: "strokeTextureStyle")
+        aCoder.encodeCGPoint(strokeTextureOffset, forKey: "strokeTextureOffset")
+        
+        aCoder.encodeInteger(lineCap.rawValue, forKey: "lineCap")
+        aCoder.encodeInteger(lineJoin.rawValue, forKey: "lineJoin")
+        aCoder.encodeDouble(Double(miterLimit), forKey: "miterLimit")
+        aCoder.encodeInteger(fillRule.rawValue, forKey: "fillRule")
+        
+        if lineDashPattern != nil { aCoder.encodeObject(NSArray(array: lineDashPattern!.map { NSNumber(double: Double($0)) }), forKey: "lineDashPattern") }
+        aCoder.encodeDouble(Double(lineDashPhase), forKey: "lineDashPhase")
+        aCoder.encodeDouble(Double(strokeStart), forKey: "strokeStart")
+        aCoder.encodeDouble(Double(strokeEnd), forKey: "strokeEnd")
+        
+        aCoder.encodeDouble(Double(glowWidth), forKey: "glowWidth")
+        aCoder.encodeObject(glowColor, forKey: "glowColor")
+        
+        aCoder.encodeInteger(blendMode.rawValue, forKey: "blendMode")
+        aCoder.encodeObject(shader, forKey: "shader")
+        
+        if path != nil { aCoder.encodeObject(UIBezierPath(CGPath: path!), forKey: "path") }
     }
 
     // MARK: Instance variables
     
-    public var path: CGPath! { didSet { updateShape() } }
+    public var path: CGPath? { didSet { updateShape() } }
     
     public var fillColor: SKColor = SKColor.clearColor() { didSet { updateShape() } }
     
     public var fillTexture: SKTexture? { didSet { updateShape() } }
     
     public var fillTextureStyle: TextureStyle = .Scale { didSet { updateShape() } }
+    
+    public var fillTextureOffset: CGPoint = CGPointZero { didSet { updateShape() } }
     
     public var lineWidth: CGFloat = 1.0  { didSet { updateShape() } }
     
@@ -157,6 +218,8 @@ public class RSShapeNode : SKNode {
     public var strokeTexture: SKTexture? { didSet { updateShape() } }
     
     public var strokeTextureStyle: TextureStyle = .Scale { didSet { updateShape() } }
+    
+    public var strokeTextureOffset: CGPoint = CGPointZero { didSet { updateShape() } }
     
     public var lineCap: LineCap = .Butt { didSet { updateShape() } }
 
@@ -211,7 +274,7 @@ public class RSShapeNode : SKNode {
         let shape = self.shape
         
         if path != nil {
-            var frame = CGPathGetBoundingBox(path)
+            var frame = CGPathGetBoundingBox(path!)
             frame = CGRect(x: -frame.origin.x+2*lineWidth, y: -frame.origin.y+2*lineWidth, width: frame.size.width+4*lineWidth, height: frame.size.height+4*lineWidth)
             
             let layer = CAShapeLayer()
