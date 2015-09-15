@@ -10,6 +10,11 @@ import SpriteKit
 
 public class RSShapeNode : SKNode {
     
+    public enum TextureStyle {
+        case Scale
+        case Repeat
+    }
+    
     public enum LineCap {
         case Butt
         case Round
@@ -33,56 +38,106 @@ public class RSShapeNode : SKNode {
         super.init()
     }
     
-    public convenience init(path: CGPath) {
+    /// Creates a shape node from a Core Graphics path.
+    public convenience init(var path: CGPath, centered: Bool = false) {
+        if centered {
+            let frame = CGPathGetBoundingBox(path)
+            var transform = CGAffineTransformMakeTranslation(-frame.origin.x-frame.size.width/2, -frame.origin.y-frame.size.height/2)
+            path = CGPathCreateCopyByTransformingPath(path, &transform)!
+        }
+        
         self.init()
         self.path = path
     }
     
-    public init(path: CGPath, centered: Bool) {
-        // TODO
-        super.init()
-    }
-    
+    /// Creates a shape node with a rectangular path.
     public convenience init(rect: CGRect) {
         self.init(path: CGPathCreateWithRect(rect, nil))
     }
     
+    /// Creates a shape node with a rectangular path centered on the node’s origin.
     public convenience init(rectOfSize size: CGSize) {
         self.init(rect: CGRect(origin: CGPointZero, size: size))
     }
     
+    /// Creates a shape with a rectangular path with rounded corners.
     public convenience init(rect: CGRect, cornerRadius radius: CGFloat) {
         self.init(path: CGPathCreateWithRoundedRect(rect, radius, radius, nil))
     }
     
+    /// Creates a shape with a rectangular path with rounded corners centered on the node’s origin.
     public convenience init(rectOfSize size: CGSize, cornerRadius radius: CGFloat) {
         self.init(rect: CGRect(origin: CGPointZero, size: size), cornerRadius: radius)
     }
     
+    /// Creates a shape node with a circular path centered on the node’s origin.
     public convenience init(circleOfRadius radius: CGFloat) {
         self.init(ellipseOfSize: CGSize(width: 2*radius, height: 2*radius))
     }
     
+    /// Creates a shape node with an elliptical path centered on the node’s origin.
     public convenience init(ellipseOfSize size: CGSize) {
         self.init(ellipseInRect: CGRect(origin: CGPointZero, size: size))
     }
     
+    /// Creates a shape node with an elliptical path that fills the specified rectangle.
     public convenience init(ellipseInRect rect: CGRect) {
         self.init(path: CGPathCreateWithEllipseInRect(rect, nil))
     }
     
-    public init(points: UnsafeMutablePointer<CGPoint>, count: Int) {
-        // TODO
-        super.init()
+    /// Creates a shape node from a series of points.
+    public convenience init(points: [CGPoint], closed: Bool = true) {
+        if points.isEmpty { self.init() }
+        else {
+            let path = CGPathCreateMutable()
+            
+            for (index, point) in points.enumerate() {
+                if index == 0 { CGPathMoveToPoint(path, nil, point.x, point.y) }
+                else { CGPathAddLineToPoint(path, nil, point.x, point.y) }
+            }
+            if closed && points.count > 2 { CGPathCloseSubpath(path) }
+            
+            self.init(path: path)
+        }
     }
     
-    public init(splinePoints points: UnsafeMutablePointer<CGPoint>, count: Int) {
-        // TODO
-        super.init()
+    /// Creates a shape node with a quadratic Bézier curve from a series of control points.
+    public convenience init(controlPoints points: [CGPoint], closed: Bool = false) {
+        if points.isEmpty { self.init() }
+        else {
+            let path = CGPathCreateMutable()
+            
+            func midBetweenPoint(point1: CGPoint, point2: CGPoint) -> CGPoint {
+                return CGPoint(x: (point1.x+point2.x)/CGFloat(2), y: (point1.y+point2.y)/CGFloat(2))
+            }
+            
+            var prevPoint = points.last!
+            for (index, point) in points.enumerate() {
+                let mid = midBetweenPoint(prevPoint, point2: point)
+                
+                if index == 0 {
+                    if closed && points.count > 2 { CGPathMoveToPoint(path, nil, mid.x, mid.y) }
+                    else { CGPathMoveToPoint(path, nil, point.x, point.y) }
+                }
+                else {  CGPathAddQuadCurveToPoint(path, nil, prevPoint.x, prevPoint.y, mid.x, mid.y) }
+                
+                prevPoint = point
+            }
+            
+            if closed && points.count > 2 {
+                let mid = midBetweenPoint(prevPoint, point2: points.first!)
+                CGPathAddQuadCurveToPoint(path, nil, prevPoint.x, prevPoint.y, mid.x, mid.y)
+                CGPathCloseSubpath(path)
+            }
+            else { CGPathAddLineToPoint(path, nil, prevPoint.x, prevPoint.y) }
+            
+            self.init(path: path)
+        }
     }
     
     public required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
+        // TODO
     }
 
     // MARK: Instance variables
@@ -93,11 +148,15 @@ public class RSShapeNode : SKNode {
     
     public var fillTexture: SKTexture? { didSet { updateShape() } }
     
+    public var fillTextureStyle: TextureStyle = .Scale { didSet { updateShape() } }
+    
     public var lineWidth: CGFloat = 1.0  { didSet { updateShape() } }
     
     public var strokeColor: SKColor = SKColor.whiteColor()  { didSet { updateShape() } }
     
     public var strokeTexture: SKTexture? { didSet { updateShape() } }
+    
+    public var strokeTextureStyle: TextureStyle = .Scale { didSet { updateShape() } }
     
     public var lineCap: LineCap = .Butt { didSet { updateShape() } }
 
@@ -116,6 +175,8 @@ public class RSShapeNode : SKNode {
     public var strokeEnd: CGFloat = 1 { didSet { updateShape() } }
     
     public var glowWidth: CGFloat = 0 { didSet { updateShape() } }
+    
+    public var glowColor: SKColor = SKColor.blackColor() { didSet { updateShape() } }
     
     public var blendMode: SKBlendMode {
         set { shape.blendMode = newValue }
@@ -199,7 +260,7 @@ public class RSShapeNode : SKNode {
             parentLayer.addSublayer(layer)
             
             UIGraphicsBeginImageContextWithOptions(parentLayer.frame.size, false, UIScreen.mainScreen().scale)
-            parentLayer.renderInContext(UIGraphicsGetCurrentContext())
+            parentLayer.renderInContext(UIGraphicsGetCurrentContext()!)
             let image = UIGraphicsGetImageFromCurrentImageContext()
             UIGraphicsEndImageContext()
             

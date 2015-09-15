@@ -145,6 +145,7 @@
 		6135489E1B9EDFB80013D0E2 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftMigration = 0710;
 				LastSwiftUpdateCheck = 0700;
 				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = "Matthias Fey";
@@ -383,6 +384,7 @@
 				613548BD1B9EDFB80013D0E2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		613548BE1B9EDFB80013D0E2 /* Build configuration list for PBXNativeTarget "RSShapeNodeTests" */ = {
 			isa = XCConfigurationList;
@@ -391,6 +393,7 @@
 				613548C01B9EDFB80013D0E2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
