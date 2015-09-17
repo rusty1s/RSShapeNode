@@ -8,18 +8,23 @@
 
 import SpriteKit
 
-/// An `RSShapeNode` object draws a shape by rendering a Core Graphics path
+/// A `RSShapeNode` object draws a shape by rendering a Core Graphics path
 /// offscreen using a disconnected `CAShapeLayer`.  The `CAShapeLayer` is then
 /// snapshoted into an image and used as a texture of a `SKSpriteNode`, which
 /// is added as a child to the `RSShapeNode`.
-/// This technique fixes the insane amount of unfixable bugs of `SKShapeNode`.
+/// This technique fixes the insane amount of unfixable bugs and memory leaks of
+/// `SKShapeNode`.
 /// `RSShapeNode` has nearly the complete functionality of a `SKShapeNode` and
-/// has added functionality that is missing in `SKShapeNode`, e.g. repeated
+/// plus additional functionality that is missing in `SKShapeNode`, e.g. repeated
 /// textures, shadows, line dash patterns and fill rules.
-
+///
 /// The inspiration of this technique comes from the thread:
 /// "`SKShapeNode`, you are dead to me"
 /// http://sartak.org/2014/03/skshapenode-you-are-dead-to-me.html
+///
+/// Note: `RSShapeNode` rerenders its image every time one of its variables
+/// its changed, except if there is no path specified. Check that you are
+/// setting the path at the last moment possible.
 public class RSShapeNode : SKNode {
     
     public enum TextureStyle : Int {
@@ -69,7 +74,7 @@ public class RSShapeNode : SKNode {
     
     /// Creates a shape node with a rectangular path centered on the node’s origin.
     public convenience init(rectOfSize size: CGSize) {
-        self.init(rect: CGRect(origin: CGPointZero, size: size))
+        self.init(rect: CGRect(origin: CGPoint(x: -size.width/2, y: -size.height/2), size: size))
     }
     
     /// Creates a shape with a rectangular path with rounded corners.
@@ -79,7 +84,7 @@ public class RSShapeNode : SKNode {
     
     /// Creates a shape with a rectangular path with rounded corners centered on the node’s origin.
     public convenience init(rectOfSize size: CGSize, cornerRadius radius: CGFloat) {
-        self.init(rect: CGRect(origin: CGPointZero, size: size), cornerRadius: radius)
+        self.init(rect: CGRect(origin: CGPoint(x: -size.width/2, y: -size.height/2), size: size), cornerRadius: radius)
     }
     
     /// Creates a shape node with a circular path centered on the node’s origin.
@@ -89,7 +94,7 @@ public class RSShapeNode : SKNode {
     
     /// Creates a shape node with an elliptical path centered on the node’s origin.
     public convenience init(ellipseOfSize size: CGSize) {
-        self.init(ellipseInRect: CGRect(origin: CGPointZero, size: size))
+        self.init(ellipseInRect: CGRect(origin: CGPoint(x: -size.width/2, y: -size.height/2), size: size))
     }
     
     /// Creates a shape node with an elliptical path that fills the specified rectangle.
@@ -265,7 +270,7 @@ public class RSShapeNode : SKNode {
     /// The miter limit used when stroking the shape’s path.
     /// If the current line join style is set to `.Miter`, the miter limit
     /// determines whether the lines should be joined with a bevel instead
-    /// of a miter. The length of the miter is divided by the line width.
+    /// of a miter.  The length of the miter is divided by the line width.
     /// If the result is greater than the miter limit, the path is drawn with a bevel.
     /// The default value is 10.0.
     public var miterLimit: CGFloat = 10 { didSet { updateShape() } }
