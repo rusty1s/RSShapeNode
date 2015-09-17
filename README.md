@@ -1,10 +1,14 @@
 # RSShapeNode
 
-A `RSShapeNode` object draws a shape by rendering a Core Graphics path offscreen using a disconnected `CAShapeLayer`.  The `CAShapeLayer` is then snapshoted into an image and used as a texture of a `SKSpriteNode`, which is added as a child to the `RSShapeNode`. This technique fixes the insane amount of unfixable bugs and memory leaks of `SKShapeNode`. `RSShapeNode` has nearly the complete functionality of a `SKShapeNode` and plus additional functionality that is missing in `SKShapeNode`, e.g. repeated textures, shadows, line dash patterns and fill rules.
+A `RSShapeNode` object draws a shape by rendering a Core Graphics path offscreen using a disconnected `CAShapeLayer`.  The `CAShapeLayer` is then snapshoted into an image and used as a texture of a `SKSpriteNode`, which is added as a child to the `RSShapeNode`. This technique fixes the insane amount of unfixable bugs and memory leaks of `SKShapeNode`.
+
+`RSShapeNode` has nearly the complete functionality of a `SKShapeNode` plus additional functionality that is missing in `SKShapeNode`, e.g. repeated textures, shadows, line dash patterns and fill rules.
 
 The inspiration of this technique comes from the thread: [`SKShapeNode`, you are dead to me](http://sartak.org/2014/03/skshapenode-you-are-dead-to-me.html)
 
 **Note:** `RSShapeNode` rerenders its image every time one of its variables its changed, except if there is no path specified. Check that you are setting the path at the last moment possible.
+
+![Example](example.png)
 
 ## Installation
 

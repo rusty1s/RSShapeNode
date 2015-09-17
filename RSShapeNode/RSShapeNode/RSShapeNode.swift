@@ -14,8 +14,9 @@ import SpriteKit
 /// is added as a child to the `RSShapeNode`.
 /// This technique fixes the insane amount of unfixable bugs and memory leaks of
 /// `SKShapeNode`.
-/// `RSShapeNode` has nearly the complete functionality of a `SKShapeNode` and
-/// plus additional functionality that is missing in `SKShapeNode`, e.g. repeated
+///
+/// `RSShapeNode` has nearly the complete functionality of a `SKShapeNode` plus 
+/// additional functionality that is missing in `SKShapeNode`, e.g. repeated
 /// textures, shadows, line dash patterns and fill rules.
 ///
 /// The inspiration of this technique comes from the thread:
