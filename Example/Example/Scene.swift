@@ -19,7 +19,7 @@ class Scene : SKScene {
         let node = RSShapeNode(points: vertices, closed: true)
         
         node.fillColor = SKColor.yellowColor()
-        node.fillTexture = SKTexture(imageNamed: "stripe")
+        node.fillTexture = SKTexture(imageNamed: "Stripe")
         node.fillTextureStyle = .Repeat
         node.fillTextureOffset = CGPoint(x: 100, y: 100)
         

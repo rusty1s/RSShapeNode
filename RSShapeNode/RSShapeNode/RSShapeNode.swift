@@ -217,7 +217,6 @@ public class RSShapeNode : SKNode {
                 boundingBox = CGPathGetBoundingBox(path)
                 var inverseTransform = CGAffineTransformConcat(CGAffineTransformMakeScale(1, -1), CGAffineTransformMakeTranslation(-boundingBox.origin.x, boundingBox.size.height+boundingBox.origin.y))
                 inversedPath = CGPathCreateCopyByTransformingPath(path, &inverseTransform)
-                print(CGPathGetBoundingBox(inversedPath))
             }
             else {
                 boundingBox = nil
