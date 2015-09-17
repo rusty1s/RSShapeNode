@@ -209,9 +209,9 @@ public class RSShapeNode : SKNode {
 
     // MARK: Instance variables
     
+    /// The path that defines the shape.
     public var path: CGPath? {
         set {
-            print("LOL")
             _path = newValue
             if newValue != nil {
                 boundingBox = CGPathGetBoundingBox(path)
@@ -230,45 +230,92 @@ public class RSShapeNode : SKNode {
     private var boundingBox: CGRect!
     private var inversedPath: CGPath!
     
+    /// The color used to fill the shape.  The default fill color is `SKColor.clearColor()`,
+    /// which means the shape is not filled.
     public var fillColor: SKColor = SKColor.clearColor() { didSet { updateShape() } }
     
+    /// The texture used to fill the shape above its fill color.  The default value is `nil`.
     public var fillTexture: SKTexture? { didSet { updateShape() } }
     
+    /// The style used to draw the fill texture.  The default value is `.Scale`, which means
+    /// the texture is scaled to fit the shapes bounding box.
     public var fillTextureStyle: TextureStyle = .Scale { didSet { updateShape() } }
     
+    /// If the current fill texture style is set to `.Repeat`, the fill texture offset
+    /// determines where the texture has its origin.  The default value is `CGPointZero`.
     public var fillTextureOffset: CGPoint = CGPointZero { didSet { updateShape() } }
     
+    /// The width used to stroke the path.  The default value is 1.0.
     public var lineWidth: CGFloat = 1.0  { didSet { updateShape() } }
     
+    /// The color used to stroke the shape’s path.  The default stroke color is
+    /// `SKColor.whiteColor()`.  If you do not want to stroke the shape, use `SKColor.clearColor()`.
     public var strokeColor: SKColor = SKColor.whiteColor()  { didSet { updateShape() } }
     
+    /// Specifies the line cap style for the shape’s path.  The line cap style
+    /// specifies the shape of the endpoints of an open path when stroked.
+    /// The default value is `.Butt`.
     public var lineCap: LineCap = .Butt { didSet { updateShape() } }
 
+    /// Specifies the line join style for the shape’s path.  The line join style
+    /// specifies the shape of the joints between connected segments of a stroked path.
+    /// The default value is `.Miter`.
     public var lineJoin: LineJoin = .Miter { didSet { updateShape() } }
     
+    /// The miter limit used when stroking the shape’s path.
+    /// If the current line join style is set to `.Miter`, the miter limit
+    /// determines whether the lines should be joined with a bevel instead
+    /// of a miter. The length of the miter is divided by the line width.
+    /// If the result is greater than the miter limit, the path is drawn with a bevel.
+    /// The default value is 10.0.
     public var miterLimit: CGFloat = 10 { didSet { updateShape() } }
     
+    /// The fill rule used when filling the shape’s path.
+    /// The default value is `.NonZero`.
     public var fillRule: FillRule = .NonZero { didSet { updateShape() } }
     
+    /// The dash pattern applied to the shape’s path when stroked.
+    /// The dash pattern is specified as an array of `CGFloat` that specify
+    /// the lengths of the painted segments and unpainted segments, respectively,
+    /// of the dash pattern.  Default is `nil`, a solid line.
     public var lineDashPattern: [CGFloat]? { didSet { updateShape() } }
     
+    /// The dash phase applied to the shape’s path when stroked.
+    /// Line dash phase specifies how far into the dash pattern the line starts.
+    /// The defaut value is 0.0.
     public var lineDashPhase: CGFloat = 0 { didSet { updateShape() } }
     
+    /// The relative location at which to begin stroking the path.
+    /// The value of this property must be in the range 0.0 to 1.0.
+    /// The default value of this property is 0.0.
     public var strokeStart: CGFloat = 0 { didSet { updateShape() } }
     
+    /// The relative location at which to stop stroking the path.
+    /// The value of this property must be in the range 0.0 to 1.0.
+    /// The default value of this property is 1.0.
     public var strokeEnd: CGFloat = 1 { didSet { updateShape() } }
     
+    /// The blur radius (in points) used to render the shape’s shadow.
+    /// The default value of this property is 0.0.
     public var shadowRadius: CGFloat = 0 { didSet { updateShape() } }
     
+    /// The color of the shape’s shadow.  The default value is `SKColor.blackColor()`.
     public var shadowColor: SKColor = SKColor.blackColor() { didSet { updateShape() } }
     
+    /// The opacity of the shape’s shadow.  The value in this property
+    /// must be in the range 0.0 (transparent) to 1.0 (opaque).
+    /// The default value of this property is 1.0.
     public var shadowOpacity: CGFloat = 1 { didSet { updateShape() } }
     
+    /// The blend mode used to blend the shape into the parent’s framebuffer.
+    /// The default value is `SKBlendModeAlpha`.
     public var blendMode: SKBlendMode {
         set { shape.blendMode = newValue }
         get { return shape.blendMode }
     }
     
+    /// A property that determines whether the sprite is rendered using a
+    /// custom shader.  The default value is `nil`.
     public var shader: SKShader? {
         set { shape.shader = newValue }
         get { return shape.shader }
@@ -297,7 +344,7 @@ public class RSShapeNode : SKNode {
         let shape = self.shape
         
         if path != nil {
-            let offset = max(lineWidth*max(2, miterLimit), 2*shadowRadius)
+            let offset = max(lineWidth*max(1, miterLimit), 2*shadowRadius)
             let frame = CGRect(x: -boundingBox.origin.x+offset, y: -boundingBox.origin.y+offset, width: boundingBox.size.width+2*offset, height: boundingBox.size.height+2*offset)
             
             let parentLayer = CAShapeLayer()
