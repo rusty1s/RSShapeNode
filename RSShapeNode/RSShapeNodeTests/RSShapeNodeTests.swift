@@ -55,7 +55,7 @@ class RSShapeNodeTests: XCTestCase {
         node = RSShapeNode(rectOfSize: CGSize(width: 10, height: 10))
         node.miterLimit = 0
         node.lineWidth = 0
-        XCTAssertEqual(node.frame, CGRect(x: 0, y: 0, width: 10, height: 10))
+        XCTAssertEqual(node.frame, CGRect(x: -5, y: -5, width: 10, height: 10))
         
         node = RSShapeNode(rect: CGRect(x: 10, y: 10, width: 10, height: 10), cornerRadius: 5)
         node.miterLimit = 0
@@ -65,17 +65,17 @@ class RSShapeNodeTests: XCTestCase {
         node = RSShapeNode(rectOfSize: CGSize(width: 10, height: 10), cornerRadius: 5)
         node.miterLimit = 0
         node.lineWidth = 0
-        XCTAssertEqual(node.frame, CGRect(x: 0, y: 0, width: 10, height: 10))
+        XCTAssertEqual(node.frame, CGRect(x: -5, y: -5, width: 10, height: 10))
         
         node = RSShapeNode(circleOfRadius: 10)
         node.miterLimit = 0
         node.lineWidth = 0
-        XCTAssertEqual(node.frame, CGRect(x: 0, y: 0, width: 20, height: 20))
+        XCTAssertEqual(node.frame, CGRect(x: -10, y: -10, width: 20, height: 20))
         
         node = RSShapeNode(ellipseOfSize: CGSize(width: 10, height: 20))
         node.miterLimit = 0
         node.lineWidth = 0
-        XCTAssertEqual(node.frame, CGRect(x: 0, y: 0, width: 10, height: 20))
+        XCTAssertEqual(node.frame, CGRect(x: -5, y: -10, width: 10, height: 20))
         
         node = RSShapeNode(ellipseInRect: CGRect(x: 10, y: 10, width: 10, height: 20))
         node.miterLimit = 0
