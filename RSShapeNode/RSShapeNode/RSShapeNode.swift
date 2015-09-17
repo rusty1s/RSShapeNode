@@ -8,6 +8,18 @@
 
 import SpriteKit
 
+/// An `RSShapeNode` object draws a shape by rendering a Core Graphics path
+/// offscreen using a disconnected `CAShapeLayer`.  The `CAShapeLayer` is then
+/// snapshoted into an image and used as a texture of a `SKSpriteNode`, which
+/// is added as a child to the `RSShapeNode`.
+/// This technique fixes the insane amount of unfixable bugs of `SKShapeNode`.
+/// `RSShapeNode` has nearly the complete functionality of a `SKShapeNode` and
+/// has added functionality that is missing in `SKShapeNode`, e.g. repeated
+/// textures, shadows, line dash patterns and fill rules.
+
+/// The inspiration of this technique comes from the thread:
+/// "`SKShapeNode`, you are dead to me"
+/// http://sartak.org/2014/03/skshapenode-you-are-dead-to-me.html
 public class RSShapeNode : SKNode {
     
     public enum TextureStyle : Int {
@@ -145,10 +157,7 @@ public class RSShapeNode : SKNode {
         
         lineWidth = CGFloat(aDecoder.decodeDoubleForKey("lineWidth"))
         if let strokeColor = aDecoder.decodeObjectForKey("strokeColor") as? SKColor { self.strokeColor = strokeColor }
-        if let strokeTexture = aDecoder.decodeObjectForKey("strokeTexture") as? SKTexture { self.strokeTexture = strokeTexture }
-        strokeTextureStyle = TextureStyle(rawValue: aDecoder.decodeIntegerForKey("strokeTextureStyle"))!
-        strokeTextureOffset = aDecoder.decodeCGPointForKey("strokeTextureOffset")
-        
+  
         lineCap = LineCap(rawValue: aDecoder.decodeIntegerForKey("lineCap"))!
         lineJoin = LineJoin(rawValue: aDecoder.decodeIntegerForKey("lineJoin"))!
         miterLimit = CGFloat(aDecoder.decodeDoubleForKey("miterLimit"))
@@ -159,8 +168,9 @@ public class RSShapeNode : SKNode {
         strokeStart = CGFloat(aDecoder.decodeDoubleForKey("strokeStart"))
         strokeEnd = CGFloat(aDecoder.decodeDoubleForKey("strokeEnd"))
         
-        glowWidth = CGFloat(aDecoder.decodeDoubleForKey("glowWidth"))
-        if let glowColor = aDecoder.decodeObjectForKey("glowColor") as? SKColor { self.glowColor = glowColor }
+        shadowRadius = CGFloat(aDecoder.decodeDoubleForKey("shadowRadius"))
+        if let shadowColor = aDecoder.decodeObjectForKey("shadowColor") as? SKColor { self.shadowColor = shadowColor }
+        shadowOpacity = CGFloat(aDecoder.decodeDoubleForKey("shadowOpacity"))
         
         blendMode = SKBlendMode(rawValue: aDecoder.decodeIntegerForKey("blendMode"))!
         if let shader = aDecoder.decodeObjectForKey("shader") as? SKShader { self.shader = shader }
@@ -176,10 +186,7 @@ public class RSShapeNode : SKNode {
         
         aCoder.encodeDouble(Double(lineWidth), forKey: "lineWidth")
         aCoder.encodeObject(strokeColor, forKey: "strokeColor")
-        aCoder.encodeObject(strokeTexture, forKey: "strokeTexture")
-        aCoder.encodeInteger(strokeTextureStyle.rawValue, forKey: "strokeTextureStyle")
-        aCoder.encodeCGPoint(strokeTextureOffset, forKey: "strokeTextureOffset")
-        
+
         aCoder.encodeInteger(lineCap.rawValue, forKey: "lineCap")
         aCoder.encodeInteger(lineJoin.rawValue, forKey: "lineJoin")
         aCoder.encodeDouble(Double(miterLimit), forKey: "miterLimit")
@@ -190,8 +197,9 @@ public class RSShapeNode : SKNode {
         aCoder.encodeDouble(Double(strokeStart), forKey: "strokeStart")
         aCoder.encodeDouble(Double(strokeEnd), forKey: "strokeEnd")
         
-        aCoder.encodeDouble(Double(glowWidth), forKey: "glowWidth")
-        aCoder.encodeObject(glowColor, forKey: "glowColor")
+        aCoder.encodeDouble(Double(shadowRadius), forKey: "shadowRadius")
+        aCoder.encodeObject(shadowColor, forKey: "shadowColor")
+        aCoder.encodeDouble(Double(shadowOpacity), forKey: "shadowOpacity")
         
         aCoder.encodeInteger(blendMode.rawValue, forKey: "blendMode")
         aCoder.encodeObject(shader, forKey: "shader")
@@ -201,7 +209,26 @@ public class RSShapeNode : SKNode {
 
     // MARK: Instance variables
     
-    public var path: CGPath? { didSet { updateShape() } }
+    public var path: CGPath? {
+        set {
+            print("LOL")
+            _path = newValue
+            if newValue != nil {
+                boundingBox = CGPathGetBoundingBox(path)
+                var inverseTransform = CGAffineTransformConcat(CGAffineTransformMakeScale(1, -1), CGAffineTransformMakeTranslation(0, boundingBox.size.height))
+                inversedPath = CGPathCreateCopyByTransformingPath(path, &inverseTransform)
+            }
+            else {
+                boundingBox = nil
+                inversedPath = nil
+            }
+            updateShape()
+        }
+        get { return _path }
+    }
+    private var _path: CGPath?
+    private var boundingBox: CGRect!
+    private var inversedPath: CGPath!
     
     public var fillColor: SKColor = SKColor.clearColor() { didSet { updateShape() } }
     
@@ -214,12 +241,6 @@ public class RSShapeNode : SKNode {
     public var lineWidth: CGFloat = 1.0  { didSet { updateShape() } }
     
     public var strokeColor: SKColor = SKColor.whiteColor()  { didSet { updateShape() } }
-    
-    public var strokeTexture: SKTexture? { didSet { updateShape() } }
-    
-    public var strokeTextureStyle: TextureStyle = .Scale { didSet { updateShape() } }
-    
-    public var strokeTextureOffset: CGPoint = CGPointZero { didSet { updateShape() } }
     
     public var lineCap: LineCap = .Butt { didSet { updateShape() } }
 
@@ -237,9 +258,11 @@ public class RSShapeNode : SKNode {
     
     public var strokeEnd: CGFloat = 1 { didSet { updateShape() } }
     
-    public var glowWidth: CGFloat = 0 { didSet { updateShape() } }
+    public var shadowRadius: CGFloat = 0 { didSet { updateShape() } }
     
-    public var glowColor: SKColor = SKColor.blackColor() { didSet { updateShape() } }
+    public var shadowColor: SKColor = SKColor.blackColor() { didSet { updateShape() } }
+    
+    public var shadowOpacity: CGFloat = 1 { didSet { updateShape() } }
     
     public var blendMode: SKBlendMode {
         set { shape.blendMode = newValue }
@@ -274,53 +297,93 @@ public class RSShapeNode : SKNode {
         let shape = self.shape
         
         if path != nil {
-            var frame = CGPathGetBoundingBox(path!)
-            frame = CGRect(x: -frame.origin.x+2*lineWidth, y: -frame.origin.y+2*lineWidth, width: frame.size.width+4*lineWidth, height: frame.size.height+4*lineWidth)
-            
-            let layer = CAShapeLayer()
-            layer.frame = frame
-            layer.path = path
-            layer.fillColor = fillColor.CGColor
-            layer.lineWidth = lineWidth
-            layer.strokeColor = strokeColor.CGColor
-            layer.miterLimit = miterLimit
-            layer.lineDashPattern = lineDashPattern?.map { NSNumber(double: Double($0)) }
-            layer.lineDashPhase = lineDashPhase
-            layer.strokeStart = strokeStart
-            layer.strokeEnd = strokeEnd
-            
-            switch lineCap {
-            case .Butt: layer.lineCap = kCALineCapButt
-            case .Round: layer.lineCap = kCALineCapRound
-            case .Square: layer.lineCap = kCALineCapSquare
-            }
-            
-            switch lineJoin {
-            case .Miter: layer.lineJoin = kCALineJoinMiter
-            case .Round: layer.lineJoin = kCALineJoinRound
-            case .Bevel: layer.lineJoin = kCALineJoinBevel
-            }
-            
-            switch fillRule {
-            case .NonZero: layer.fillRule = kCAFillRuleNonZero
-            case .EvenOdd: layer.fillRule = kCAFillRuleEvenOdd
-            }
-            
-            if glowWidth > 0 {
-                // TODO
-            }
-            
-            if fillTexture != nil {
-                // TODO
-            }
-            
-            if strokeTexture != nil {
-                // TODO
-            }
+            let offset = max(lineWidth*max(2, miterLimit), 2*shadowRadius)
+            let frame = CGRect(x: -boundingBox.origin.x+offset, y: -boundingBox.origin.y+offset, width: boundingBox.size.width+2*offset, height: boundingBox.size.height+2*offset)
             
             let parentLayer = CAShapeLayer()
             parentLayer.frame = CGRect(origin: CGPointZero, size: frame.size)
-            parentLayer.addSublayer(layer)
+            
+            let fillLayer = CAShapeLayer()
+            parentLayer.addSublayer(fillLayer)
+            fillLayer.frame = frame
+            fillLayer.path = inversedPath
+            fillLayer.fillColor = fillColor.CGColor
+            
+            switch fillRule {
+            case .NonZero: fillLayer.fillRule = kCAFillRuleNonZero
+            case .EvenOdd: fillLayer.fillRule = kCAFillRuleEvenOdd
+            }
+            
+            if shadowRadius > 0 {
+                fillLayer.shadowPath = path
+                fillLayer.shadowRadius = shadowRadius
+                fillLayer.shadowColor = shadowColor.CGColor
+                fillLayer.shadowOpacity = Float(shadowOpacity)
+            }
+            
+            if fillTexture != nil {
+                let fillTextureLayer = CAShapeLayer()
+                parentLayer.addSublayer(fillTextureLayer)
+                fillTextureLayer.frame = CGRect(origin: frame.origin, size: boundingBox.size)
+                
+                switch fillTextureStyle {
+                case .Scale: fillTextureLayer.contents = fillTexture?.CGImage
+                case .Repeat:
+                    let image = fillTexture?.CGImage
+                    let width = CGImageGetWidth(image)
+                    let height = CGImageGetHeight(image)
+                    var offsetX = Int(fillTextureOffset.x)%width
+                    if fillTextureOffset.x > 0 { offsetX -= width }
+                    var offsetY = Int(-fillTextureOffset.y)%height+Int(boundingBox.size.height)-height
+                    if fillTextureOffset.y > 0 { offsetY += height }
+                    
+                    var x = CGFloat(offsetX)
+                    var y = CGFloat(offsetY)
+                    while y > CGFloat(-height) {
+                        while x < boundingBox.size.width {
+                            let layer = CAShapeLayer()
+                            layer.frame = CGRect(x: x, y: y, width: CGFloat(width), height: CGFloat(height))
+                            layer.contents = image
+                            fillTextureLayer.addSublayer(layer)
+                            
+                            x += CGFloat(width)
+                        }
+                        y -= CGFloat(height)
+                        x = CGFloat(offsetX)
+                    }
+                }
+                
+                let maskLayer = CAShapeLayer()
+                maskLayer.frame = CGRect(origin: CGPointZero, size: boundingBox.size)
+                maskLayer.path = inversedPath
+                maskLayer.fillRule = fillLayer.fillRule
+                fillTextureLayer.mask = maskLayer
+            }
+            
+            let strokeLayer = CAShapeLayer()
+            parentLayer.addSublayer(strokeLayer)
+            strokeLayer.frame = frame
+            strokeLayer.path = inversedPath
+            strokeLayer.fillColor = UIColor.clearColor().CGColor
+            strokeLayer.lineWidth = lineWidth
+            strokeLayer.strokeColor = strokeColor.CGColor
+            strokeLayer.miterLimit = miterLimit
+            strokeLayer.lineDashPattern = lineDashPattern?.map { NSNumber(double: Double($0)) }
+            strokeLayer.lineDashPhase = lineDashPhase
+            strokeLayer.strokeStart = strokeStart
+            strokeLayer.strokeEnd = strokeEnd
+            
+            switch lineCap {
+            case .Butt: strokeLayer.lineCap = kCALineCapButt
+            case .Round: strokeLayer.lineCap = kCALineCapRound
+            case .Square: strokeLayer.lineCap = kCALineCapSquare
+            }
+            
+            switch lineJoin {
+            case .Miter: strokeLayer.lineJoin = kCALineJoinMiter
+            case .Round: strokeLayer.lineJoin = kCALineJoinRound
+            case .Bevel: strokeLayer.lineJoin = kCALineJoinBevel
+            }
             
             UIGraphicsBeginImageContextWithOptions(parentLayer.frame.size, false, UIScreen.mainScreen().scale)
             parentLayer.renderInContext(UIGraphicsGetCurrentContext()!)
@@ -328,9 +391,8 @@ public class RSShapeNode : SKNode {
             UIGraphicsEndImageContext()
             
             shape.size = image.size
-            shape.yScale = -1
             shape.texture = SKTexture(image: image)
-            shape.position = CGPoint(x: -layer.frame.origin.x, y: -layer.frame.origin.y+image.size.height)
+            shape.position = CGPoint(x: -frame.origin.x, y: -frame.origin.y)
         }
         else { shape.removeFromParent() }
     }

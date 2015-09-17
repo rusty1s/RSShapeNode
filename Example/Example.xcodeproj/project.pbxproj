@@ -14,7 +14,7 @@
 		6191FAA31B9EF22D00BC11BD /* Scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6191FAA21B9EF22D00BC11BD /* Scene.swift */; };
 		6191FAAF1B9EF28E00BC11BD /* RSShapeNode.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6191FAAA1B9EF27200BC11BD /* RSShapeNode.framework */; };
 		6191FAB11B9EF2A300BC11BD /* RSShapeNode.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 6191FAAA1B9EF27200BC11BD /* RSShapeNode.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		6191FAB31BA07EDF00BC11BD /* Spaceship.png in Resources */ = {isa = PBXBuildFile; fileRef = 6191FAB21BA07EDF00BC11BD /* Spaceship.png */; };
+		61B1773B1BAB0443001AF614 /* stripe.png in Resources */ = {isa = PBXBuildFile; fileRef = 61B1773A1BAB0443001AF614 /* stripe.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,7 +64,7 @@
 		6135496B1B9EF1B50013D0E2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6191FAA21B9EF22D00BC11BD /* Scene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Scene.swift; sourceTree = "<group>"; };
 		6191FAA41B9EF27200BC11BD /* RSShapeNode.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RSShapeNode.xcodeproj; path = ../RSShapeNode/RSShapeNode.xcodeproj; sourceTree = "<group>"; };
-		6191FAB21BA07EDF00BC11BD /* Spaceship.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Spaceship.png; sourceTree = "<group>"; };
+		61B1773A1BAB0443001AF614 /* stripe.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = stripe.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,11 +99,11 @@
 		6135495E1B9EF1B50013D0E2 /* Example */ = {
 			isa = PBXGroup;
 			children = (
-				6191FAB21BA07EDF00BC11BD /* Spaceship.png */,
 				6135495F1B9EF1B50013D0E2 /* AppDelegate.swift */,
 				613549611B9EF1B50013D0E2 /* ViewController.swift */,
 				6191FAA21B9EF22D00BC11BD /* Scene.swift */,
 				613549631B9EF1B50013D0E2 /* Main.storyboard */,
+				61B1773A1BAB0443001AF614 /* stripe.png */,
 				613549661B9EF1B50013D0E2 /* Assets.xcassets */,
 				6135496B1B9EF1B50013D0E2 /* Info.plist */,
 			);
@@ -203,8 +203,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				61B1773B1BAB0443001AF614 /* stripe.png in Resources */,
 				613549671B9EF1B50013D0E2 /* Assets.xcassets in Resources */,
-				6191FAB31BA07EDF00BC11BD /* Spaceship.png in Resources */,
 				613549651B9EF1B50013D0E2 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
