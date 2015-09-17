@@ -114,7 +114,7 @@ public class RSShapeNode : SKNode {
     }
     
     /// Creates a shape node with a quadratic Bézier curve from a series of control points.
-    public convenience init(controlPoints points: [CGPoint], closed: Bool = false) {
+    public convenience init(controlPoints points: [CGPoint], closed: Bool = true) {
         if points.isEmpty { self.init() }
         else {
             let path = CGPathCreateMutable()
@@ -215,8 +215,9 @@ public class RSShapeNode : SKNode {
             _path = newValue
             if newValue != nil {
                 boundingBox = CGPathGetBoundingBox(path)
-                var inverseTransform = CGAffineTransformConcat(CGAffineTransformMakeScale(1, -1), CGAffineTransformMakeTranslation(0, boundingBox.size.height))
+                var inverseTransform = CGAffineTransformConcat(CGAffineTransformMakeScale(1, -1), CGAffineTransformMakeTranslation(-boundingBox.origin.x, boundingBox.size.height+boundingBox.origin.y))
                 inversedPath = CGPathCreateCopyByTransformingPath(path, &inverseTransform)
+                print(CGPathGetBoundingBox(inversedPath))
             }
             else {
                 boundingBox = nil
@@ -345,7 +346,7 @@ public class RSShapeNode : SKNode {
         
         if path != nil {
             let offset = max(lineWidth*max(1, miterLimit), 2*shadowRadius)
-            let frame = CGRect(x: -boundingBox.origin.x+offset, y: -boundingBox.origin.y+offset, width: boundingBox.size.width+2*offset, height: boundingBox.size.height+2*offset)
+            let frame = CGRect(x: offset, y: offset, width: boundingBox.size.width+2*offset, height: boundingBox.size.height+2*offset)
             
             let parentLayer = CAShapeLayer()
             parentLayer.frame = CGRect(origin: CGPointZero, size: frame.size)
@@ -439,7 +440,7 @@ public class RSShapeNode : SKNode {
             
             shape.size = image.size
             shape.texture = SKTexture(image: image)
-            shape.position = CGPoint(x: -frame.origin.x, y: -frame.origin.y)
+            shape.position = CGPoint(x: -frame.origin.x+boundingBox.origin.x, y: -frame.origin.y+boundingBox.origin.y)
         }
         else { shape.removeFromParent() }
     }

@@ -15,17 +15,21 @@ class Scene : SKScene {
         backgroundColor = SKColor.whiteColor()
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
         
-        let vertices = [CGPoint(x: 0, y: 0), CGPoint(x: 0, y: 100), CGPoint(x: 200, y: 0)]
+        let vertices = [CGPoint(x: -100, y: 0), CGPoint(x: 0, y: 100), CGPoint(x: 100, y: 0), CGPoint(x: 0, y: -100)]
         let node = RSShapeNode(points: vertices, closed: true)
-        node.strokeColor = SKColor.blackColor()
-        node.lineWidth = 20
-        node.shadowRadius = 20
-        node.shadowColor = SKColor.redColor()
+        
         node.fillColor = SKColor.yellowColor()
+        node.fillTexture = SKTexture(imageNamed: "stripe")
+        node.fillTextureStyle = .Repeat
+        node.fillTextureOffset = CGPoint(x: 100, y: 100)
+        
+        node.lineWidth = 10
+        node.strokeColor = SKColor.whiteColor()
+        
+        node.shadowRadius = 10
+        node.shadowColor = SKColor.blackColor()
+        node.shadowOpacity = 1
         
         addChild(node)
-        node.position = CGPoint(x: -100, y: -50)
-        
-        
     }
 }
